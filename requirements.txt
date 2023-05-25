@@ -1,0 +1,9 @@
+plotly
+pygeos
+geopandas
+folium
+streamlit-folium
+pandas 
+matplotlib.pyplot
+matplotlib.dates
+numpy
