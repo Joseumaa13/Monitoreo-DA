@@ -12,9 +12,9 @@ st.set_page_config(layout="wide")
 
 # Logos (REVISAR NO SALEN)
 # insertar imagen
-image = Image.open('da1.jpg')
-image1 = Image.open('da2.jpg')
-image2 = Image.open('da3.jpg')
+image = Image.open('images/da1.jpg')
+image1 = Image.open('images/da2.jpg')
+image2 = Image.open('images/da3.jpg')
 st.image([image, image1, image2])
 
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
