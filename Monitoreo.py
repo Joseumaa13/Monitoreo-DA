@@ -11,8 +11,8 @@ st.set_page_config(layout="wide")
 
 # Logos
 # insertar imagen
-image = Image.open('images/Imagen1.jpg')
-image1 = Image.open('images/Imagen2.jpg')
+image = Image.open('images/Imagen1.png')
+image1 = Image.open('images/Imagen2.png')
 st.image([image, image1])
 
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
