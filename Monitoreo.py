@@ -9,12 +9,11 @@ from PIL import Image
 st.set_page_config(layout="wide")
 
 
-# Logos (REVISAR NO SALEN)
+# Logos
 # insertar imagen
-image = Image.open('images/da1.jpg')
-image1 = Image.open('images/da2.jpg')
-image2 = Image.open('images/da3.jpg')
-st.image([image, image1, image2])
+image = Image.open('images/Imagen1.jpg')
+image1 = Image.open('images/Imagen2.jpg')
+st.image([image, image1])
 
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
 st.title('Monitoreo')
@@ -26,7 +25,7 @@ st.markdown('La aplicación muestra un conjunto de tablas y gráficos.')
 file1 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo')
 # Se continúa con el procesamiento solo si hay un archivo de datos cargado
 if file1 is not None:
-# Carga de registros de presencia en un dataframe
+# Carga de registros en un dataframe
     sn = pd.read_csv(file1, sep = ";")
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
     sn['RECORD_DATE'] = pd.to_datetime(sn['RECORD_DATE'], dayfirst=True, format='%d/%m/%Y')
@@ -61,9 +60,10 @@ if file1 is not None:
 
 # Nombre de la tabla según el sitio y acuífero.
     st.header(f'Valores correspondientes al sitio: {sitios}, Acuífero: {acuiferos}')
+# Creación del dataframe para la tabla.
     st.dataframe(sn[["ID_DEVICE_LOG","ID_DEVICE_LOG_RECORDS","SITE","FECHA_DE_LA_MEDICION","HORA_DE_LA_MEDICION","ACUIFERO","REFERENCIA","PROPIETARIO","TIPO_DE_POZO","ACTUAL_CONDUCT_US_CM","DENSITY_OF_WATER_G_CM3","LEVEL_DEPTH_M","PRESSURE_MBAR","PRESSURE_MBAR_2","RESISTIVITY_OHM_CM","SALINITY_PSU","SENSOR_N","SENSOR_N_2","SPECIFIC_CONDUCT_US_CM","TEMPERATURE","TOT_DISS_SOLID_PPM","FECHA_INSERT_EN_BD","RECORD_DATE","RECORD_TIME"]])
 
-# SALIDAS
+
 # Crear el dataframe unicamente con estas columna
     sn = sn[["ID_DEVICE_LOG", "SITE", "ACUIFERO", "LEVEL_DEPTH_M", "RECORD_DATE", "RECORD_TIME", "ACTUAL_CONDUCT_US_CM"]]
 # Filtrar filas sin dato de conductividad NO FUNCIONA POR EL MOMENTO
@@ -114,7 +114,7 @@ if file1 is not None:
 
 file2 = st.file_uploader('Seleccione un archivo CSV correspondiente estación meteorológica')
 if file2 is not None:
-  # Carga de registros de presencia en un dataframe
+# Carga de datos en un dataframe
     sn = pd.read_csv(file2, sep = ";")
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
 sn['mes-año'] = pd.to_datetime(sn['mes-año'],format="%d/%m/%Y")
