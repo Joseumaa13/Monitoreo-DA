@@ -13,8 +13,7 @@ st.set_page_config(layout="wide")
 # insertar imagen
 image = Image.open('images/Imagen1.png')
 image1 = Image.open('images/Imagen2.png')
-st.image([image, image1],width=400)
-#st.image(image, width=400, caption= "Dirección de Agua",image1, width=400, caption= "Ministerio de ambiente y Energía")
+st.image([image, image1],width=350)
 
 
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
