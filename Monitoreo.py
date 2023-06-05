@@ -109,8 +109,8 @@ if file1 is not None:
 # Mostrar el gráfico dinámico
     st.plotly_chart(fig)
 
-    file2 = st.file_uploader('Seleccione un archivo CSV correspondiente estación meteorológica')
-    if file2 is not None:
+file2 = st.file_uploader('Seleccione un archivo CSV correspondiente estación meteorológica')
+if file2 is not None:
 # Carga de datos en un dataframe
         sn = pd.read_csv(file2, sep = ";")
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
