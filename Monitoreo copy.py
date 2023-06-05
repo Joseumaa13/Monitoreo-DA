@@ -32,20 +32,27 @@ if file1 is not None:
     sn['RECORD_DATE'] = pd.to_datetime(sn['RECORD_DATE'], dayfirst=True, format='%d/%m/%Y')
     sn['RECORD_TIME'] = pd.to_datetime(sn['RECORD_TIME'], format='%H:%M')
 # Depuración de los datos
-# Convertir valores que contienen punto por NaN en 'LEVEL_DEPTH_M'
+# Reemplazar valores que contienen punto por NaN
     sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].replace(r'^.*\..*$', float('nan'), regex=True)
-# Convertir los valores a punto flotante
-    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].str.replace(',', '.').astype(float)
+# Convertir los valores restantes en la columna a string
+    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].astype(str)
+# Reemplazar las comas por puntos
+    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].str.replace(',', '.')
+# Convertir la columna a números de punto flotante
+    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].astype(float)
 # Convertir los valores en 'Profundidad m' a negativos
     sn['LEVEL_DEPTH_M'] = -1 * sn['LEVEL_DEPTH_M']
- # Eliminar filas con NaN en la columna
-    sn = sn.dropna(subset=['LEVEL_DEPTH_M'])
-  # Convertir valores que contienen punto por NaN en 'ACTUAL_CONDUCT_US_CM'
+# Reemplazar valores que contienen punto por NaN
     sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].replace(r'^.*\..*$', float('nan'), regex=True)
- # Convertir los valores a punto flotante
-    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].str.replace(',', '.').astype(float)
+# Convertir los valores restantes en la columna a string
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].astype(str)
+# Reemplazar las comas por puntos
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].str.replace(',', '.')
+# Convertir la columna a números de punto flotante
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].astype(float)
 
-
+# Eliminar filas con NaN en la columna
+    sn = sn.dropna(subset=['LEVEL_DEPTH_M'])
 # Crear datos para la tabla del CSV
 # Se obtiene valores de SITE, uno sólo para el nombre
     sitios = ", ".join(sn['SITE'].unique())
@@ -60,18 +67,17 @@ if file1 is not None:
 
 # Crear el dataframe unicamente con estas columna
     sn = sn[["ID_DEVICE_LOG", "SITE", "ACUIFERO", "LEVEL_DEPTH_M", "RECORD_DATE", "RECORD_TIME", "ACTUAL_CONDUCT_US_CM"]]
+# Eliminar valores nulos
 # Verificar si la columna de conductividad tiene valores no nulos
     if 'ACTUAL_CONDUCT_US_CM' in sn.columns and sn['ACTUAL_CONDUCT_US_CM'].notnull().any():
 # Eliminar filas con valores faltantes en la columna de conductividad
         sn = sn.dropna(subset=['ACTUAL_CONDUCT_US_CM)'])
 # Renombrar columnas
     sn = sn.rename(columns={"RECORD_DATE": "Fecha", "RECORD_TIME": "Hora", "ID_DEVICE_LOG": "ID", "SITE": "Sitio", "ACUIFERO": "Acuifero", "LEVEL_DEPTH_M" : "Profundidad del nivel de agua (m)", "ACTUAL_CONDUCT_US_CM": "Conductividad electrica específica (µS/cm)"})
-
-# Concatenar las columnas de Fecha y Hora. Creación de una columna única.
+# Concatenar las columnas de Fecha y Hora. Creación de una columna unica.
     sn['Fecha_Hora'] = pd.to_datetime(sn['Fecha'].astype(str) + ' ' + sn['Hora'].astype(str))
     sn.set_index('Fecha_Hora', inplace=True)
-    sn.drop(['Fecha', 'Hora'], axis=1, inplace=True)
-
+    sn = sn.drop(['Fecha', 'Hora'], axis=1)
 # Se obtiene valores de SITE, uno sólo para el nombre
     sitios = ", ".join(sn['Sitio'].unique())
 # Se obtiene valores de ACUIFERO, uno sólo para el nombre
@@ -81,31 +87,31 @@ if file1 is not None:
 # Creación del gráfico dinámico
     fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=sn.index, y=sn['Profundidad del nivel de agua (m)'],
-                         mode='lines', name='Profundidad del nivel de agua (m)',
-                         visible=True, line=dict(color='#6fa8dc'),
-                         hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} m"))
+    fig.add_trace(go.Scatter(x=sn.index, y=sn['Profundidad del nivel de agua (m)'], # Se selecciona el dato a gráficar.
+                         mode='lines', name='Profundidad del nivel de agua (m)', # Tipo de gráfico y su etiqueta
+                         visible=True, line=dict(color='#6fa8dc'), # Color de la línea
+                         hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} m"))# Aparece la etiqueta hover para el punto situado directamente debajo del cursor.
+
 
 # Agregar la línea de conductividad eléctrica
 
-    fig.add_trace(go.Scatter(x=sn.index, y=sn['Conductividad eléctrica específica (µS/cm)'],
-                         mode='lines', name='Conductividad eléctrica (µS/cm)',
-                         visible=True, yaxis='y2', line=dict(color='#FF6100'),
-                         hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))
-
+    fig.add_trace(go.Scatter(x=sn.index, y=sn['Conductividad electrica específica (µS/cm)'], # Se selecciona el dato a gráficar.
+                         mode='lines', name='Conductividad eléctrica (µS/cm)', # Tipo de gráfico y su etiqueta
+                         visible=True, yaxis='y2', line=dict(color='#FF6100'), # Color de la línea y creación de eje secundario Y
+                         hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))# Se selecciona el dato a gráficar.
 
 # Configuración adicional del gráfico
     fig.update_layout(
-        title=f'COMPORTAMIENTO HISTÓRICO DE LAS VARIACIONES DE NIVEL Y CONDUCTIVIDAD ESPECÍFICA, SITIO: {sitios}, ACUÍFERO: {acuiferos}',
-        xaxis=dict(title='Registro Histórico', tickformat='%B-%Y', dtick='M1', tickmode='auto', rangeslider=dict(visible=False)),
-        yaxis=dict(title='Profundidad nivel de agua (m)', side='left'),
-        yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y'),
-        xaxis_tickangle=-90,
-        showlegend=True,
-        hovermode='x',
-        height=900,
-        width=1300
-        )     
+                title=f'COMPORTAMIENTO HISTÓRICO DE LAS VARIACIONES DE NIVEL Y CONDUCTIVIDAD ESPECÍFICA, SITIO: {sitios}, ACUÍFERO: {acuiferos}', # Titulo del gráfico, con sitio y acuifero
+                xaxis=dict(title='Registro Historico', tickformat='%B-%Y', dtick='M1', tickmode='auto', rangeslider=dict(visible=False)), # Etiqueta X, formato MES AÑO, etiqueta por mes, y automaticas, el rango slider desactivado
+                yaxis=dict(title='Profundidad nivel de agua (m)', side='left'), # etiqueta y a la derecha
+                yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y'), # etiqueta y a la izquierda, y que con superposición
+                xaxis_tickangle=-90, # etiquetas del x en angulo de 90°
+                showlegend=True, # que se muestra la leyenda, para activar y desactivar.
+                hovermode='x', # ventanas emergentes
+                height=900,  # Ajusta la altura de la figura en píxeles
+                width=1300    # Ajusta el ancho de la figura en píxeles
+                )       
 # Mostrar el gráfico dinámico
     st.plotly_chart(fig)
 
@@ -116,32 +122,53 @@ if file2 is not None:
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
 sn['mes-año'] = pd.to_datetime(sn['mes-año'],format="%d/%m/%Y")
 # Depuración de los datos
-sn['Acum_mensual'] = pd.to_numeric(sn['Acum_mensual'].str.replace(',', '.'), errors='coerce')
-sn['Prom_mensual'] = pd.to_numeric(sn['Prom_mensual'].str.replace(',', '.'), errors='coerce')
+# Reemplazar valores que contienen punto por NaN
+sn['Acum_mensual'] = sn['Acum_mensual'].replace(r'^.*\..*$', float('nan'), regex=True)
+# Convertir los valores restantes en la columna a string
+sn['Acum_mensual'] = sn['Acum_mensual'].astype(str)
+# Reemplazar las comas por puntos
+sn['Acum_mensual'] = sn['Acum_mensual'].str.replace(',', '.')
+# Convertir la columna a números de punto flotante
+sn['Acum_mensual'] = sn['Acum_mensual'].astype(float)
+# Reemplazar valores que contienen punto por NaN
+sn['Prom_mensual'] = sn['Prom_mensual'].replace(r'^.*\..*$', float('nan'), regex=True)
+# Convertir los valores restantes en la columna a string
+sn['Prom_mensual'] = sn['Prom_mensual'].astype(str)
+# Reemplazar las comas por puntos
+sn['Prom_mensual'] = sn['Prom_mensual'].str.replace(',', '.')
+# Convertir la columna a números de punto flotante
+sn['Prom_mensual'] = sn['Prom_mensual'].astype(float)
 
-# Eliminar filas con NaN en las columnas
-sn['Acum_mensual'] = sn['Acum_mensual'].fillna(0)
-sn['Prom_mensual'] = sn['Prom_mensual'].fillna(0)
+# Eliminar filas con NaN en la columna
+sn = sn.dropna(subset=['Acum_mensual'])
+# Eliminar filas con NaN en la columna
+sn = sn.dropna(subset=['Prom_mensual'])
 
 # Tabla de archivos csv
 st.header('Valores')
 st.dataframe(sn[["mes-año","Acum_mensual","Prom_mensual"]])
 
 # SALIDAS
-# Crear el dataframe unicamente con estas columna y renombrar
+# Crear el dataframe unicamente con estas columna
+sn = sn[["mes-año", "Acum_mensual", "Prom_mensual"]]
+# Eliminar valores nulos
+sn = sn.dropna()
+# Renombrar columnas
 sn = sn.rename(columns={"mes-año": "Mes y Año", "Acum_mensual": "Precipitación acumulada mensual (mm)", "Prom_mensual": "Precipitación promedio mensual (mm)"})
-sn['Mes y Año'] = sn['Mes y Año'].dt.strftime('%b/%Y')
+
 # SALIDAS
 # Creación del gráfico dinámico
 fig = go.Figure()
 
-traces = ['Precipitación acumulada mensual (mm)', 'Precipitación promedio mensual (mm)']
+fig.add_trace(go.Scatter(x=sn["Mes y Año"].dt.strftime('%Y-%m'), y=sn['Precipitación acumulada mensual (mm)'], 
+                         mode='lines', name='Precipitación acumulada mensual (mm)', 
+                         visible=True, line=dict(color='#6fa8dc'), 
+                         hovertemplate="Fecha: %{x|%b/%Y}<br>Valor: %{y} mm"))
 
-for trace in traces:
-    fig.add_trace(go.Scatter(x=sn['Mes y Año'], y=sn[trace], 
-                             mode='lines', name=trace, 
-                             visible=True, line=dict(color='#6fa8dc') if trace == 'Precipitación acumulada mensual (mm)' else dict(color='#FF6100'), 
-                             hovertemplate="Fecha: %{x}<br>Valor: %{y} mm"))
+fig.add_trace(go.Scatter(x=sn["Mes y Año"].dt.strftime('%Y-%m'), y=sn['Precipitación promedio mensual (mm)'], 
+                         mode='lines', name='Precipitación promedio mensual (mm)', 
+                         visible=True, yaxis='y2', line=dict(color='#FF6100'), 
+                         hovertemplate="Fecha: %{x|%b/%Y}<br>Valor: %{y} mm"))
 
 
 # Configuración adicional del gráfico
