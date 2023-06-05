@@ -7,11 +7,7 @@ from PIL import Image
 # Configuración de la página.
 st.set_page_config(page_title="MONITOREO DIRECCIÓN DE AGUA",
                    layout="wide", 
-                   initial_sidebar_state= "auto",
-                   menu_items={
-                    'Get Help': 'https://www.extremelycoolapp.com/help',
-                    'Report a bug': "https://www.extremelycoolapp.com/bug",
-                    'About': "# This is a header. This is an *extremely* cool app!"})
+                   initial_sidebar_state= "auto")
 
 # Logos
 # insertar imagen
