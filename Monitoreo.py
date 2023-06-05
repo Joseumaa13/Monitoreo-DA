@@ -1,13 +1,17 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.io as pl
-import plotly.express as px
 from PIL import Image
 
-# Configuración de la página.
-st.set_page_config(layout="wide")
 
+# Configuración de la página.
+st.set_page_config(page_title="MONITOREO DIRECCIÓN DE AGUA",
+                   layout="wide", 
+                   initial_sidebar_state= "auto",
+                   menu_items={
+                    'Get Help': 'https://www.extremelycoolapp.com/help',
+                    'Report a bug': "https://www.extremelycoolapp.com/bug",
+                    'About': "# This is a header. This is an *extremely* cool app!"})
 
 # Logos
 # insertar imagen
@@ -67,10 +71,11 @@ if file1 is not None:
 
 # Crear el dataframe unicamente con estas columna
     sn = sn[["ID_DEVICE_LOG", "SITE", "ACUIFERO", "LEVEL_DEPTH_M", "RECORD_DATE", "RECORD_TIME", "ACTUAL_CONDUCT_US_CM"]]
-# Filtrar filas sin dato de conductividad NO FUNCIONA POR EL MOMENTO
-    sn = sn[sn['ACTUAL_CONDUCT_US_CM'].notna()]
 # Eliminar valores nulos
-    sn = sn.dropna()
+# Verificar si la columna de conductividad tiene valores no nulos
+    if 'ACTUAL_CONDUCT_US_CM' in sn.columns and sn['ACTUAL_CONDUCT_US_CM'].notnull().any():
+# Eliminar filas con valores faltantes en la columna de conductividad
+        sn = sn.dropna(subset=['ACTUAL_CONDUCT_US_CM)'])
 # Renombrar columnas
     sn = sn.rename(columns={"RECORD_DATE": "Fecha", "RECORD_TIME": "Hora", "ID_DEVICE_LOG": "ID", "SITE": "Sitio", "ACUIFERO": "Acuifero", "LEVEL_DEPTH_M" : "Profundidad del nivel de agua (m)", "ACTUAL_CONDUCT_US_CM": "Conductividad electrica específica (µS/cm)"})
 # Concatenar las columnas de Fecha y Hora. Creación de una columna unica.
@@ -93,6 +98,7 @@ if file1 is not None:
 
 
 # Agregar la línea de conductividad eléctrica
+
     fig.add_trace(go.Scatter(x=sn.index, y=sn['Conductividad electrica específica (µS/cm)'], # Se selecciona el dato a gráficar.
                          mode='lines', name='Conductividad eléctrica (µS/cm)', # Tipo de gráfico y su etiqueta
                          visible=True, yaxis='y2', line=dict(color='#FF6100'), # Color de la línea y creación de eje secundario Y
