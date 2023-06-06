@@ -112,7 +112,7 @@ if file1 is not None:
         x=1.25),
         hovermode='x',
         height=900,
-        width=1300
+        width=1350
     )
 
     fig.add_layout_image(
