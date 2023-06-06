@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from PIL import Image
+import datetime
 
 
 # Configuración de la página.
@@ -13,14 +14,14 @@ st.set_page_config(page_title="MONITOREO DIRECCIÓN DE AGUA",
 # insertar imagen
 image = Image.open('images/Imagen1.png')
 image1 = Image.open('images/Imagen2.png')
-st.image([image, image1],width=350)
+st.image([image, image1],width=300)
 
 
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
-st.title('SISTEMA DE MONITOREO DE AGUAS SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR')
-st.markdown('Esta aplicación presenta visualizaciones gráficas de aprovechamiento, calidad y profundidad')
-st.markdown('El usuario debe seleccionar un archivo CSV.')
-st.markdown('La aplicación muestra un conjunto de tablas y gráficos.')
+st.title('Sistema De Monitoreo De Aguas Subterráneas En Tiempo Real, SIMASTIR')
+st.header('**Esta aplicación presenta visualizaciones gráficas de aprovechamiento y profundidad**')
+st.markdown('**El usuario debe seleccionar un archivo CSV**')
+st.markdown('**La aplicación muestra un conjunto de tablas y gráficos**')
 
 # Carga de datos
 file1 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo')
@@ -76,7 +77,8 @@ if file1 is not None:
     sitios = ", ".join(sn['Sitio'].unique())
 # Se obtiene valores de ACUIFERO, uno sólo para el nombre
     acuiferos = ", ".join(sn['Acuifero'].unique())
-
+# Obtener la fecha actual
+    fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
 # SALIDAS
 # Creación del gráfico dinámico
     fig = go.Figure()
@@ -93,18 +95,83 @@ if file1 is not None:
                      visible=True, yaxis='y2', line=dict(color='#FF6100'),
                      hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))
 
-# Configuración adicional del gráfico
+
+ # Configuración adicional del gráfico
     fig.update_layout(
-        title=f'COMPORTAMIENTO HISTÓRICO DE LAS VARIACIONES DE NIVEL Y CONDUCTIVIDAD ESPECÍFICA, SITIO: {sitios}, ACUÍFERO: {acuiferos}',
-        xaxis=dict(title='Registro Histórico', tickformat='%B-%Y', dtick='M1', tickmode='auto', rangeslider=dict(visible=False)),
-        yaxis=dict(title='Profundidad nivel de agua (m)', side='left'),
-        yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y'),
+        title=f'COMPORTAMIENTO HISTÓRICO DE LAS VARIACIONES DE NIVEL Y CONDUCTIVIDAD ESPECÍFICA, POZO: {sitios}, ACUÍFERO: {acuiferos}',
+        font_size=(12.5),
+        xaxis=dict(title='Registro Histórico', tickformat='%B-%Y', dtick='M1', tickmode='auto'),
+        yaxis=dict(title='Profundidad nivel de agua (m)', side='left',  title_font=dict(color='#6fa8dc')),
+        yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y', title_font=dict(color='#FF6100')),
         xaxis_tickangle=-90,
         showlegend=True,
+        legend=dict(
+        yanchor="top",
+        y=0.715,
+        xanchor="right",
+        x=1.25),
         hovermode='x',
         height=900,
         width=1300
     )
+
+    fig.add_layout_image(
+        source=image,
+        xref="paper",
+        yref="paper",
+        x=1.13,  # Ajusta la posición horizontal de la imagen
+        y=0.95,  # Ajusta la posición vertical de la imagen
+        sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+        sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+        xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+        yanchor="middle"  # Ancla verticalmente la imagen al centro
+)  
+    fig.add_layout_image(
+        source=image1,
+        xref="paper",
+        yref="paper",
+        x=1.26,  # Ajusta la posición horizontal de la imagen
+        y=0.95,  # Ajusta la posición vertical de la imagen
+        sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+        sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+        xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+        yanchor="middle"  # Ancla verticalmente la imagen al centro
+)  
+# Agregar texto independiente al lado del gráfico
+    fig.add_annotation(
+        text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
+        xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
+        align='center',
+        bordercolor='black', borderwidth=1,
+        bgcolor='white')
+
+    fig.add_annotation(
+        text='<b style="font-size:12.5px">COMPORTAMIENTO HISTÓRICO DE LAS<br>VARIACIONES DE NIVEL Y<br> CONDUCTIVIDAD ESPECÍFICA</b>',
+        xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
+        align='center',
+        bordercolor='black', borderwidth=1,
+        bgcolor='white')
+# Agregar texto independiente al lado del gráfico
+    fig.add_annotation(
+        text=f'<b style="font-size:12.5px">POZO:{sitios}, <br>ACUÍFERO: {acuiferos} </b>',
+        xref='paper', yref='paper', x=1.20, y=0.50, showarrow=False,
+        align='center',
+        bordercolor='black', borderwidth=1,
+        bgcolor='white')     
+# Agregar texto independiente al lado del gráfico 
+    fig.add_annotation(
+        text='<b style="font-size:12.5px">Equipo de monitoreo financiado con el<br>Canon de Aprovechamiento de<br>Agua',
+        xref='paper', yref='paper', x=1.245, y=0.25, showarrow=False,
+        align='center',
+        bordercolor='black', borderwidth=1,
+        bgcolor='white') 
+# Agregar texto independiente al lado del gráfico 
+    fig.add_annotation(
+        text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
+        xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
+        align='center',
+        bordercolor='black', borderwidth=1,
+        bgcolor='white')
 
 # Mostrar el gráfico dinámico
     st.plotly_chart(fig)
@@ -124,11 +191,10 @@ if file2 is not None:
         sn['Prom_mensual'] = sn['Prom_mensual'].fillna(0)
 
 # Tabla de archivos csv
-        st.header('Valores')
+        st.header('Precipitación mensual y acumulada')
         sn_table = sn[["mes-año", "Acum_mensual", "Prom_mensual"]].copy()
         sn_table['mes-año'] = sn_table['mes-año'].dt.strftime('%Y-%m-%d')
         st.dataframe(sn_table)
-
 
 # SALIDAS
 # Crear el dataframe unicamente con estas columna y renombrar
@@ -145,7 +211,6 @@ if file2 is not None:
                                  mode='lines', name=trace, 
                                  visible=True, line=dict(color='#6fa8dc') if trace == 'Precipitación acumulada mensual (mm)' else dict(color='#FF6100'),
                                  hovertemplate="Fecha: %{x}<br>Valor: %{y} mm"))
-
 
 # Configuración adicional del gráfico
         fig.update_layout(
