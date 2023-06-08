@@ -118,7 +118,7 @@ if file1 is not None:
         legend=dict(yanchor="top",y=0.715,xanchor="right",x=1.25),
         hovermode='x',
         height=900,
-        width=1400,
+        width=1425,
         margin=dict(l=100, r=200, t=100, b=100)
     )
 
