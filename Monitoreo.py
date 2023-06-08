@@ -4,27 +4,23 @@ import plotly.graph_objects as go
 from PIL import Image
 import datetime
 
-
 # Configuración de la página.
 st.set_page_config(page_title="MONITOREO DIRECCIÓN DE AGUA",
                    layout="wide", 
                    initial_sidebar_state= "auto")
-
-# Logos
-# insertar imagen
+# Insertar imagenes para la página inicial y gráficos.
 image = Image.open('images/Imagen1.png')
 image1 = Image.open('images/Imagen2.png')
 st.image([image, image1],width=300)
 
-
 # TÍTULO Y DESCRIPCIÓN DE LA APLICACIÓN
-st.title('Sistema De Monitoreo De Aguas Subterráneas En Tiempo Real, SIMASTIR')
-st.header('**Esta aplicación presenta visualizaciones gráficas de aprovechamiento y profundidad**')
-st.markdown('**El usuario debe seleccionar un archivo CSV**')
-st.markdown('**La aplicación muestra un conjunto de tablas y gráficos**')
+st.title('Automatización del procesamiento de datos recolectados a través del Sistema de Monitoreo de Agua Subterránea en Tiempo Real (SIMASTIR).')
+st.header('**Esta aplicación presenta visualizaciones gráficas de profundidad de agua y aprovechamiento.**')
+st.markdown('**El usuario debe seleccionar un archivo CSV según los parámetros establecidos.**')
+st.markdown('**La aplicación muestra un conjunto de tablas y gráficos.**')
 
 # Carga de datos
-file1 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo')
+file1 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo de SIMASTIR')
 # Se continúa con el procesamiento solo si hay un archivo de datos cargado
 if file1 is not None:
 # Carga de registros en un dataframe
@@ -33,40 +29,49 @@ if file1 is not None:
     sn['RECORD_DATE'] = pd.to_datetime(sn['RECORD_DATE'], dayfirst=True, format='%d/%m/%Y')
     sn['RECORD_TIME'] = pd.to_datetime(sn['RECORD_TIME'], format='%H:%M')
 # Depuración de los datos
-# Reemplazar valores que contienen punto por NaN
+
+    # Reemplazar valores que contienen punto por NaN
     sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].replace(r'^.*\..*$', float('nan'), regex=True)
-# Convertir los valores restantes en la columna a string
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].astype(str)
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].replace(r'^.*\..*$', float('nan'), regex=True)
+
+# Reemplazar las comas por puntos y convertir la columna a números de punto flotante
     sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].astype(str)
-# Reemplazar las comas por puntos
-    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].str.replace(',', '.')
-# Convertir la columna a números de punto flotante
-    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].astype(float)
+    sn['LEVEL_DEPTH_M'] = sn['LEVEL_DEPTH_M'].str.replace(',', '.').astype(float)
+    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].str.replace(',', '.').astype(float)
 # Convertir los valores en 'Profundidad m' a negativos
     sn['LEVEL_DEPTH_M'] = -1 * sn['LEVEL_DEPTH_M']
-# Reemplazar valores que contienen punto por NaN
-    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].replace(r'^.*\..*$', float('nan'), regex=True)
-# Convertir los valores restantes en la columna a string
-    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].astype(str)
-# Reemplazar las comas por puntos
-    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].str.replace(',', '.')
-# Convertir la columna a números de punto flotante
-    sn['ACTUAL_CONDUCT_US_CM'] = sn['ACTUAL_CONDUCT_US_CM'].astype(float)
 
 # Crear datos para la tabla del CSV
-# Se obtiene valores de SITE, uno sólo para el nombre
+# Se obtiene valores de SITE y ACUIFERO
     sitios = ", ".join(sn['SITE'].unique())
-# Se obtiene valores de ACUIFERO, uno sólo para el nombre
     acuiferos = ", ".join(sn['ACUIFERO'].unique())
 
 # Nombre de la tabla según el sitio y acuífero.
     st.header(f'Valores correspondientes al sitio: {sitios}, Acuífero: {acuiferos}')
 # Creación del dataframe para la tabla.
-    st.dataframe(sn[["ID_DEVICE_LOG","ID_DEVICE_LOG_RECORDS","SITE","FECHA_DE_LA_MEDICION","HORA_DE_LA_MEDICION","ACUIFERO","REFERENCIA","PROPIETARIO","TIPO_DE_POZO","ACTUAL_CONDUCT_US_CM","DENSITY_OF_WATER_G_CM3","LEVEL_DEPTH_M","PRESSURE_MBAR","PRESSURE_MBAR_2","RESISTIVITY_OHM_CM","SALINITY_PSU","SENSOR_N","SENSOR_N_2","SPECIFIC_CONDUCT_US_CM","TEMPERATURE","TOT_DISS_SOLID_PPM","FECHA_INSERT_EN_BD","RECORD_DATE","RECORD_TIME"]])
+    st.dataframe(sn[["ID_DEVICE_LOG",
+                     "ID_DEVICE_LOG_RECORDS",
+                     "SITE","FECHA_DE_LA_MEDICION",
+                     "HORA_DE_LA_MEDICION","ACUIFERO",
+                     "REFERENCIA","PROPIETARIO","TIPO_DE_POZO",
+                     "ACTUAL_CONDUCT_US_CM","DENSITY_OF_WATER_G_CM3",
+                     "LEVEL_DEPTH_M","PRESSURE_MBAR","PRESSURE_MBAR_2","RESISTIVITY_OHM_CM",
+                     "SALINITY_PSU","SENSOR_N","SENSOR_N_2","SPECIFIC_CONDUCT_US_CM","TEMPERATURE",
+                     "TOT_DISS_SOLID_PPM","FECHA_INSERT_EN_BD","RECORD_DATE","RECORD_TIME"]])
 # Crear el dataframe unicamente con estas columna
-    sn = sn[["ID_DEVICE_LOG", "SITE", "ACUIFERO", "LEVEL_DEPTH_M", "RECORD_DATE", "RECORD_TIME", "ACTUAL_CONDUCT_US_CM"]]
+    sn = sn[["ID_DEVICE_LOG", 
+             "SITE", "ACUIFERO", 
+             "LEVEL_DEPTH_M", "RECORD_DATE", 
+             "RECORD_TIME", "ACTUAL_CONDUCT_US_CM"]]
 
 # Renombrar columnas
-    sn = sn.rename(columns={"RECORD_DATE": "Fecha", "RECORD_TIME": "Hora", "ID_DEVICE_LOG": "ID", "SITE": "Sitio", "ACUIFERO": "Acuifero", "LEVEL_DEPTH_M" : "Profundidad del nivel de agua (m)", "ACTUAL_CONDUCT_US_CM": "Conductividad electrica específica (µS/cm)"})
+    sn = sn.rename(columns={
+         "RECORD_DATE": "Fecha", "RECORD_TIME": "Hora", 
+         "ID_DEVICE_LOG": "ID", "SITE": "Sitio", 
+         "ACUIFERO": "Acuifero", 
+         "LEVEL_DEPTH_M" : "Profundidad del nivel de agua (m)", 
+         "ACTUAL_CONDUCT_US_CM": "Conductividad electrica específica (µS/cm)"})
 
 # Concatenar las columnas de Fecha y Hora. Creación de una columna única.
     sn['Fecha_Hora'] = pd.to_datetime(sn['Fecha'].astype(str) + ' ' + sn['Hora'].astype(str))
@@ -75,25 +80,29 @@ if file1 is not None:
 
 # Se obtiene valores de SITE, uno sólo para el nombre
     sitios = ", ".join(sn['Sitio'].unique())
-# Se obtiene valores de ACUIFERO, uno sólo para el nombre
     acuiferos = ", ".join(sn['Acuifero'].unique())
 # Obtener la fecha actual
     fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
+
 # SALIDAS
 # Creación del gráfico dinámico
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=sn.index, y=sn['Profundidad del nivel de agua (m)'],
-                     mode='lines', name='Profundidad del nivel de agua (m)',
-                     visible=True, line=dict(color='#6fa8dc'),
-                     hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} m"))
+
+    fig.add_trace(go.Scatter(
+         x=sn.index,
+         y=sn['Profundidad del nivel de agua (m)'],
+         mode='lines', name='Profundidad del nivel de agua (m)',
+         visible=True, line=dict(color='#6fa8dc'),
+         hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} m"))
 
 # Verificar si hay valores en la columna 'Conductividad electrica específica (µS/cm)'
     if 'Conductividad electrica específica (µS/cm)' in sn.columns and not sn['Conductividad electrica específica (µS/cm)'].isnull().all():
-    # Agregar la línea de conductividad eléctrica
-        fig.add_trace(go.Scatter(x=sn.index, y=sn['Conductividad electrica específica (µS/cm)'],
-                     mode='lines', name='Conductividad eléctrica (µS/cm)',
-                     visible=True, yaxis='y2', line=dict(color='#FF6100'),
-                     hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))
+        fig.add_trace(go.Scatter(
+             x=sn.index,
+             y=sn['Conductividad electrica específica (µS/cm)'],
+             mode='lines', name='Conductividad eléctrica (µS/cm)',
+             visible=True, yaxis='y2', line=dict(color='#FF6100'),
+             hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))
 
 
  # Configuración adicional del gráfico
@@ -105,14 +114,10 @@ if file1 is not None:
         yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y', title_font=dict(color='#FF6100')),
         xaxis_tickangle=-90,
         showlegend=True,
-        legend=dict(
-        yanchor="top",
-        y=0.715,
-        xanchor="right",
-        x=1.25),
+        legend=dict(yanchor="top",y=0.715,xanchor="right",x=1.25),
         hovermode='x',
         height=900,
-        width=1350,
+        width=1400,
         margin=dict(l=100, r=100, t=100, b=100)
     )
 
@@ -184,22 +189,23 @@ if file2 is not None:
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
         sn['mes-año'] = pd.to_datetime(sn['mes-año'],format="%d/%m/%Y")
 # Depuración de los datos
-        sn['Acum_mensual'] = pd.to_numeric(sn['Acum_mensual'].str.replace(',', '.'), errors='coerce')
-        sn['Prom_mensual'] = pd.to_numeric(sn['Prom_mensual'].str.replace(',', '.'), errors='coerce')
-
+        columnas_limpias = ['Acum_mensual', 'Prom_mensual']
+        sn[columnas_limpias] = sn[columnas_limpias].apply(lambda x: pd.to_numeric(x.str.replace(',', '.'), errors='coerce'))
 # Eliminar filas con NaN en las columnas
-        sn['Acum_mensual'] = sn['Acum_mensual'].fillna(0)
-        sn['Prom_mensual'] = sn['Prom_mensual'].fillna(0)
+        sn[columnas_limpias] = sn[columnas_limpias].fillna(0)
 
 # Tabla de archivos csv
-        st.header('Precipitación mensual y acumulada')
+        st.header('Precipitación promedio mensual y acumulada')
         sn_table = sn[["mes-año", "Acum_mensual", "Prom_mensual"]].copy()
         sn_table['mes-año'] = sn_table['mes-año'].dt.strftime('%Y-%m-%d')
         st.dataframe(sn_table)
 
 # SALIDAS
 # Crear el dataframe unicamente con estas columna y renombrar
-        sn = sn.rename(columns={"mes-año": "Mes y Año", "Acum_mensual": "Precipitación acumulada mensual (mm)", "Prom_mensual": "Precipitación promedio mensual (mm)"})
+        sn = sn.rename(columns={
+             "mes-año": "Mes y Año",
+             "Acum_mensual": "Precipitación acumulada mensual (mm)", 
+             "Prom_mensual": "Precipitación promedio mensual (mm)"})
         sn['Mes y Año'] = sn['Mes y Año'].dt.strftime('%b/%Y')
 # SALIDAS
 # Creación del gráfico dinámico
@@ -208,22 +214,135 @@ if file2 is not None:
         traces = ['Precipitación acumulada mensual (mm)', 'Precipitación promedio mensual (mm)']
 
         for trace in traces:
+            color = '#6fa8dc' if trace == 'Precipitación acumulada mensual (mm)' else '#FF6100'
             fig.add_trace(go.Scatter(x=sn['Mes y Año'], y=sn[trace], 
                                  mode='lines', name=trace, 
-                                 visible=True, line=dict(color='#6fa8dc') if trace == 'Precipitación acumulada mensual (mm)' else dict(color='#FF6100'),
+                                 visible=True, line=dict(color=color),
                                  hovertemplate="Fecha: %{x}<br>Valor: %{y} mm"))
 
 # Configuración adicional del gráfico
         fig.update_layout(
-                    title='Precipitacion',
+                    title='PRECIPITACIÓN PROMEDIO Y ACUMULADA MENSUAL',
+                    font_size=(12.5),
                     xaxis=dict(title='Año', tickformat='%B-%Y', tickmode='auto', nticks=20, rangeslider=dict(visible=False)),
                     yaxis=dict(title='Precipitación acumulada mensual (mm)', side='left'),
                     yaxis2=dict(title='Precipitación promedio mensual (mm)', side='right', overlaying='y'),
                     xaxis_tickangle=-90,
                     showlegend=True,
+                    legend=dict(yanchor="top",y=0.715,xanchor="right",x=1.28),
                     hovermode='x',
                     height=900,  # Ajusta la altura de la figura en píxeles
-                    width=1300    # Ajusta el ancho de la figura en píxeles
+                    width=1300,
+                    margin=dict(l=100, r=100, t=100, b=100)  # Ajusta el ancho de la figura en píxeles
                     )
+        fig.add_layout_image(
+            source=image,
+            xref="paper",
+            yref="paper",
+            x=1.13,  # Ajusta la posición horizontal de la imagen
+            y=0.95,  # Ajusta la posición vertical de la imagen
+            sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+            sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+            xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+            yanchor="middle"  # Ancla verticalmente la imagen al centro
+)  
+        fig.add_layout_image(
+            source=image1,
+            xref="paper",
+            yref="paper",
+            x=1.26,  # Ajusta la posición horizontal de la imagen
+            y=0.95,  # Ajusta la posición vertical de la imagen
+            sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+            sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+            xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+            yanchor="middle"  # Ancla verticalmente la imagen al centro
+)  
+# Agregar texto independiente al lado del gráfico
+        fig.add_annotation(
+            text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
+            xref='paper', yref='paper', x=1.27, y=0.88, showarrow=False,
+            align='center',
+            bordercolor='black', borderwidth=1,
+            bgcolor='white')
+
+        fig.add_annotation(
+            text='<b style="font-size:12.5px">ESTACIÓN CARTAGENA<br>INSTITUTO METEOROLÓGICO NACIONAL',
+            xref='paper', yref='paper', x=1.260, y=0.80, showarrow=False,
+            align='center',
+            bordercolor='black', borderwidth=1,
+            bgcolor='white')     
 # Mostrar el gráfico dinámico
         st.plotly_chart(fig)
+        # Carga de datos
+file3 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores dinámicos')
+if file3 is not None:
+# Carga de registros en un dataframe
+            dn = pd.read_csv(file3, sep=";")
+# Reemplazar comas por puntos en las columnas numéricas
+            dn.iloc[:, 1:] = dn.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
+
+# Lista de etiquetas para seleccionar el gráfico
+            etiquetas = []
+            for i in dn.index:
+                etiqueta = f"{dn.iloc[i, 0]}"
+                etiquetas.append(etiqueta)
+
+# Seleccionar el índice del gráfico mediante las etiquetas
+            etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar", etiquetas)
+
+# Obtener el índice seleccionado
+            i = etiquetas.index(etiqueta_seleccionada)
+
+# Se crea una nueva figura para el gráfico seleccionado
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=dn.columns[1:],  # Las fechas son las columnas a partir de la segunda
+                y=dn.iloc[i, 1:],  # Los valores son el resto de las columnas para esta fila
+                mode='lines',
+                name=dn.iloc[i, 0]  # El nombre del gráfico es el valor de la primera columna
+    ))
+            fig.update_layout(title=dn.iloc[i, 0])
+# Invertir el eje y para mostrar valores negativos
+            fig.update_layout(
+                yaxis=dict(autorange="reversed"))
+                
+# Se muestra el gráfico seleccionado
+            st.plotly_chart(fig)
+
+
+file4 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores estáticos')
+if file4 is not None:
+# Carga de registros en un dataframe
+                dn2 = pd.read_csv(file4, sep=";")
+# Reemplazar comas por puntos en las columnas numéricas
+                dn2.iloc[:, 1:] = dn2.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
+
+# Lista de etiquetas para seleccionar el gráfico
+                etiquetas = []
+                for i in dn2.index:
+                    etiqueta = f"{dn2.iloc[i, 0]}"
+                    etiquetas.append(etiqueta)
+
+# Seleccionar el índice del gráfico mediante las etiquetas
+                etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar:", etiquetas)
+
+# Obtener el índice seleccionado
+                i = etiquetas.index(etiqueta_seleccionada)
+
+# Se crea una nueva figura para el gráfico seleccionado
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=dn2.columns[1:],  # Las fechas son las columnas a partir de la segunda
+                    y=dn2.iloc[i, 1:],  # Los valores son el resto de las columnas para esta fila
+                    mode='lines',
+                    name=dn2.iloc[i, 0]  # El nombre del gráfico es el valor de la primera columna
+    ))
+
+# Título del gráfico
+                fig.update_layout(title=dn2.iloc[i, 0])
+
+# Invertir el eje y para mostrar valores negativos
+                fig.update_layout(yaxis=dict(autorange="reversed"))
+
+# Se muestra el gráfico seleccionado
+                st.plotly_chart(fig)
