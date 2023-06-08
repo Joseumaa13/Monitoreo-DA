@@ -119,7 +119,7 @@ if file1 is not None:
         hovermode='x',
         height=900,
         width=1400,
-        margin=dict(l=100, r=100, t=100, b=100)
+        margin=dict(l=100, r=200, t=100, b=100)
     )
 
     fig.add_layout_image(
