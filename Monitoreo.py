@@ -26,8 +26,8 @@ if file1 is not None:
 # Carga de registros en un dataframe
     sn = pd.read_csv(file1, sep = ";")
 # Dar formatos de fecha y hora a las columnas RECORD_DATE y RECORD_TIME
-    sn['RECORD_DATE'] = pd.to_datetime(sn['RECORD_DATE'], dayfirst=True, format='%d/%m/%Y')
-    sn['RECORD_TIME'] = pd.to_datetime(sn['RECORD_TIME'], format='%H:%M')
+    sn['RECORD_DATE'] = pd.to_datetime(sn['RECORD_DATE'], dayfirst=True, format='%d/%m/%Y').dt.date
+    sn['RECORD_TIME'] = pd.to_datetime(sn['RECORD_TIME'], format='%H:%M').dt.strftime('%H:%M')
 # Depuración de los datos
 
     # Reemplazar valores que contienen punto por NaN
@@ -77,13 +77,11 @@ if file1 is not None:
     sn['Fecha_Hora'] = pd.to_datetime(sn['Fecha'].astype(str) + ' ' + sn['Hora'].astype(str))
     sn.set_index('Fecha_Hora', inplace=True)
     sn.drop(['Fecha', 'Hora'], axis=1, inplace=True)
-
 # Se obtiene valores de SITE, uno sólo para el nombre
     sitios = ", ".join(sn['Sitio'].unique())
     acuiferos = ", ".join(sn['Acuifero'].unique())
 # Obtener la fecha actual
-    fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
-
+    fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")   
 # SALIDAS
 # Creación del gráfico dinámico
     fig = go.Figure()
