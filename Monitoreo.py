@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 from PIL import Image
 import datetime
-from dateutil import parser
 
 # Configuración de la página.
 st.set_page_config(page_title="MONITOREO DIRECCIÓN DE AGUA",
