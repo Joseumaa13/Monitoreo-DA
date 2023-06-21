@@ -102,12 +102,11 @@ if file1 is not None:
              visible=True, yaxis='y2', line=dict(color='#FF6100'),
              hovertemplate="Fecha: %{x|%d-%m}<br>Hora: %{x|%H:%M}<br>Valor: %{y} µS/cm"))
 
-
  # Configuración adicional del gráfico
     fig.update_layout(
         title=f'COMPORTAMIENTO HISTÓRICO DE LAS VARIACIONES DE NIVEL Y CONDUCTIVIDAD ESPECÍFICA, POZO: {sitios}, ACUÍFERO: {acuiferos}',
         font_size=(12.5),
-        xaxis=dict(title='Registro Histórico', tickformat='%B-%Y', dtick='M1', tickmode='auto'),
+        xaxis=dict(title='Registro Histórico', tickformat='%B-%Y',dtick = 'M12'),
         yaxis=dict(title='Profundidad nivel de agua (m)', side='left',  title_font=dict(color='#6fa8dc')),
         yaxis2=dict(title='Conductividad eléctrica (µS/cm)', side='right', overlaying='y', title_font=dict(color='#FF6100')),
         xaxis_tickangle=-90,
@@ -324,9 +323,9 @@ if file3 is not None:
                                 xaxis_tickangle=-90,
                                 legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
                                 showlegend=True,
-                                xaxis=dict(title="Registro Histórico",tickmode="auto",  # Ajuste automático de las etiquetas del eje x
-                                nticks=10  # Especifica la cantidad deseada de etiquetas del eje x
-        ))
+                                xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
+                                yaxis=dict(title='Profundidad nivel de agua (m)') 
+        )
             
             fig.add_layout_image(
                 source=image,
@@ -421,9 +420,9 @@ if file4 is not None:
                                 xaxis_tickangle=-90,
                                 legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
                                 showlegend=True,
-                                xaxis=dict(title="Registro Histórico",tickmode="auto",  # Ajuste automático de las etiquetas del eje x
-                                nticks=10  # Especifica la cantidad deseada de etiquetas del eje x
-        ))
+                                xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
+                                yaxis=dict(title='Profundidad nivel de agua (m)') 
+        )
             
             fig.add_layout_image(
                 source=image,
