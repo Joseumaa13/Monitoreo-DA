@@ -179,7 +179,7 @@ if file1 is not None:
 # Mostrar el gráfico dinámico
     st.plotly_chart(fig)
 
-file2 = st.file_uploader('Seleccione un archivo CSV correspondiente a la estación meteorológica')
+file2 = st.file_uploader('Seleccione un archivo CSV correspondiente a los valores de precipitación mensual de la estación meteorológica')
 if file2 is not None:
 # Carga de datos en un dataframe
         sn = pd.read_csv(file2, sep = ";")
@@ -222,7 +222,7 @@ if file2 is not None:
                     title='PRECIPITACIÓN PROMEDIO Y ACUMULADA MENSUAL',
                     font_size=(12.5),
                     xaxis=dict(title='Año', tickformat='%B-%Y', tickmode='auto', nticks=20, rangeslider=dict(visible=False)),
-                    yaxis=dict(title='Precipitación acumulada mensual (mm)', side='left'),
+                    yaxis=dict(title='Precipitación (mm)', side='left'),
                     yaxis2=dict(title='Precipitación promedio mensual (mm)', side='right', overlaying='y'),
                     xaxis_tickangle=-90,
                     showlegend=True,
@@ -263,7 +263,7 @@ if file2 is not None:
             bgcolor='white')
 
         fig.add_annotation(
-            text='<b style="font-size:12.5px">ESTACIÓN CARTAGENA<br>INSTITUTO METEOROLÓGICO NACIONAL',
+            text='<b style="font-size:12.5px">ESTACIÓN METEOROLÓGICA<br>INSTITUTO METEOROLÓGICO NACIONAL',
             xref='paper', yref='paper', x=1.260, y=0.80, showarrow=False,
             align='center',
             bordercolor='black', borderwidth=1,
@@ -271,6 +271,107 @@ if file2 is not None:
 # Mostrar el gráfico dinámico
         st.plotly_chart(fig)
 
+# Carga de datos
+file3 = st.file_uploader('Seleccione un archivo CSV correspondiente a los valores de precipitación diaria de la estación meteorológica')
+
+# Se continúa con el procesamiento solo si hay un archivo de datos cargado
+if file3 is not None:
+# Carga de registros en un dataframe
+            df = pd.read_csv(file3, sep=';', header=0, dtype=str)
+            df
+
+# Obtener los días
+            dias = df.columns[7:38].tolist()
+
+# Crear la columna "Fecha" concatenando "ANO-MES" con los días correspondientes
+            df['Fecha'] = df['ANO-MES'] + '-' + pd.Series(dias).str.zfill(2)
+
+# Convertir la columna "Fecha" en formato de fecha
+            df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y-%m-%d', errors='coerce')
+
+# Obtener los valores de días para cada fecha
+            datos = df.iloc[:, 7:38].apply(lambda x: x.str.replace(',', '.')).astype(float)
+
+# Convertir los valores de los días en un arreglo unidimensional
+            valores_dias = datos.values.flatten()
+
+# Crear un arreglo de fechas que corresponda a cada valor de día
+            fechas = pd.date_range(start=df['Fecha'].min(), periods=len(valores_dias), freq='D')
+# Obtener la fecha actual
+            fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")    
+# Se obtiene valores de SITE, uno sólo para el nombre
+            estacion = ", ".join(df['ESTACION'].unique())
+            nombre = ", ".join(df['NOMBRE'].unique())
+# Creación del gráfico dinámico
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=fechas,
+                y=valores_dias,
+                mode='lines', name='Precipitación Diaria',
+                visible=True, line=dict(color='#6fa8dc'),
+                hovertemplate="Fecha: %{x|%d-%m}<br>Valor: %{y} mm"))
+
+# Configuración adicional del gráfico
+            fig.update_layout(
+                title='COMPORTAMIENTO HISTÓRICO DE PRECIPITACIÓN DIARIA (mm)',
+                font_size=(12.5),
+                xaxis=dict(title='Registro Histórico', tickformat='%B-%Y',dtick = 'M12',tickmode='auto'),
+                yaxis=dict(title='Precipitación Diaria (mm)', side='left',  title_font=dict(color='#6fa8dc')),
+                xaxis_tickangle=-90,
+                showlegend=True,
+                legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.25),
+                hovermode='x',
+                height=900,
+                width=1300,
+                margin=dict(l=100, r=200, t=100, b=100)
+            )
+            fig.add_layout_image(
+                source=image,
+                xref="paper",
+                yref="paper",
+                x=1.13,  # Ajusta la posición horizontal de la imagen
+                y=0.95,  # Ajusta la posición vertical de la imagen
+                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                yanchor="middle"  # Ancla verticalmente la imagen al centro
+        )  
+            fig.add_layout_image(
+                source=image1,
+                xref="paper",
+                yref="paper",
+                x=1.26,  # Ajusta la posición horizontal de la imagen
+                y=0.95,  # Ajusta la posición vertical de la imagen
+                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                yanchor="middle"  # Ancla verticalmente la imagen al centro
+        )  
+        # Agregar texto independiente al lado del gráfico
+            fig.add_annotation(
+                text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
+                xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
+                align='center',
+                bordercolor='black', borderwidth=1,
+                bgcolor='white')
+
+            fig.add_annotation(
+                text=f'<b style="font-size:12.5px">ESTACIÓN:{estacion}<br>NOMBRE:{nombre}<br>INSTITUTO METEOROLÓGICO NACIONAL',
+                xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
+                align='center',
+                bordercolor='black', borderwidth=1,
+                bgcolor='white')  
+        # Agregar texto independiente al lado del gráfico 
+            fig.add_annotation(
+                text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
+                xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
+                align='center',
+                bordercolor='black', borderwidth=1,
+                bgcolor='white')
+
+            # Mostrar el gráfico en Streamlit
+            st.plotly_chart(fig)
 
 def filtrar_y_formatear_fechas(fechas):
     fechas_validas = []
@@ -283,196 +384,196 @@ def filtrar_y_formatear_fechas(fechas):
             continue
     return fechas_validas
 
-file3 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores dinámicos')
-if file3 is not None:
-# Carga de registros en un dataframe
-            dn = pd.read_csv(file3, sep=";")
-            dn
-# Reemplazar comas por puntos en las columnas numéricas
-            dn.iloc[:, 1:] = dn.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
-
-# Lista de etiquetas para seleccionar el gráfico
-            etiquetas = []
-            for i in dn.index:
-                etiqueta = f"{dn.iloc[i, 0]}"
-                etiquetas.append(etiqueta)
-
-# Seleccionar el índice del gráfico mediante las etiquetas
-            etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar", etiquetas)
-
-# Obtener el índice seleccionado
-            i = etiquetas.index(etiqueta_seleccionada)
-            fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
-
-# Filtrar las fechas válidas y convertirlas al formato deseado
-            fechas_validas = filtrar_y_formatear_fechas(dn.columns[1:])
-
-# Se crea una nueva figura para el gráfico seleccionado
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=fechas_validas,
-                y=-dn.iloc[i, 1:][dn.columns[1:] != 'set-21'],  # Los valores son el resto de las columnas para esta fila
-                mode='lines+markers',
-                name=dn.iloc[i, 0],  # El nombre del gráfico es el valor de la primera columna
-                hovertemplate='Fecha: %{x}<br>Valor: %{y} m',
-    ))
-            fig.update_layout(title=dn.iloc[i, 0],
-                                height=700,
-                                width=1400,
-                                margin=dict(l=100, r=300, t=100, b=100),
-                                xaxis_tickangle=-90,
-                                legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
-                                showlegend=True,
-                                xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
-                                yaxis=dict(title='Profundidad nivel de agua (m)') 
-        )
-            
-            fig.add_layout_image(
-                source=image,
-                xref="paper",
-                yref="paper",
-                x=1.13,  # Ajusta la posición horizontal de la imagen
-                y=0.95,  # Ajusta la posición vertical de la imagen
-                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
-                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
-                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
-                yanchor="middle"  # Ancla verticalmente la imagen al centro
-)  
-            fig.add_layout_image(
-                source=image1,
-                xref="paper",
-                yref="paper",
-                x=1.26,  # Ajusta la posición horizontal de la imagen
-                y=0.95,  # Ajusta la posición vertical de la imagen
-                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
-                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
-                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
-                yanchor="middle"  # Ancla verticalmente la imagen al centro
-)  
-             # Agregar texto independiente al lado del gráfico
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
-                xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')
-
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">COMPORTAMIENTO HISTÓRICO DE LAS<br>VARIACIONES DE NIVEL Y<br> CONDUCTIVIDAD ESPECÍFICA</b>',
-                xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')   
-# Agregar texto independiente al lado del gráfico 
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">Equipo de monitoreo financiado con el<br>Canon de Aprovechamiento de<br>Agua',
-                xref='paper', yref='paper', x=1.245, y=0.25, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white') 
-# Agregar texto independiente al lado del gráfico 
-            fig.add_annotation(
-                text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
-                xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')   
-# Se muestra el gráfico seleccionado
-            st.plotly_chart(fig)
-
-file4 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores estáticos')
+file4 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores dinámicos')
 if file4 is not None:
 # Carga de registros en un dataframe
-            en = pd.read_csv(file4, sep=";")
-            en
-# Reemplazar comas por puntos en las columnas numéricas
-            en.iloc[:, 1:] = en.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
+                dn = pd.read_csv(file4, sep=";")
+                dn
+    # Reemplazar comas por puntos en las columnas numéricas
+                dn.iloc[:, 1:] = dn.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
 
-# Lista de etiquetas para seleccionar el gráfico
-            etiquetas = []
-            for i in en.index:
-                etiqueta = f"{en.iloc[i, 0]}"
-                etiquetas.append(etiqueta)
+    # Lista de etiquetas para seleccionar el gráfico
+                etiquetas = []
+                for i in dn.index:
+                    etiqueta = f"{dn.iloc[i, 0]}"
+                    etiquetas.append(etiqueta)
 
-# Seleccionar el índice del gráfico mediante las etiquetas
-            etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar:", etiquetas)
+    # Seleccionar el índice del gráfico mediante las etiquetas
+                etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar", etiquetas)
 
-# Obtener el índice seleccionado
-            i = etiquetas.index(etiqueta_seleccionada)
-            fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
+    # Obtener el índice seleccionado
+                i = etiquetas.index(etiqueta_seleccionada)
+                fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
 
-# Filtrar las fechas válidas y convertirlas al formato deseado
-            fechas_validas = filtrar_y_formatear_fechas(en.columns[1:])
+    # Filtrar las fechas válidas y convertirlas al formato deseado
+                fechas_validas = filtrar_y_formatear_fechas(dn.columns[1:])
 
-# Se crea una nueva figura para el gráfico seleccionado
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=fechas_validas,
-                y=-en.iloc[i, 1:][en.columns[1:] != 'set-21'],  # Los valores son el resto de las columnas para esta fila
-                mode='lines+markers',
-                name=en.iloc[i, 0],  # El nombre del gráfico es el valor de la primera columna
-                hovertemplate='Fecha: %{x}<br>Valor: %{y} m',
-    ))
-            fig.update_layout(title=en.iloc[i, 0],
-                                height=700,
-                                width=1400,
-                                margin=dict(l=100, r=300, t=100, b=100),
-                                xaxis_tickangle=-90,
-                                legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
-                                showlegend=True,
-                                xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
-                                yaxis=dict(title='Profundidad nivel de agua (m)') 
-        )
-            
-            fig.add_layout_image(
-                source=image,
-                xref="paper",
-                yref="paper",
-                x=1.13,  # Ajusta la posición horizontal de la imagen
-                y=0.95,  # Ajusta la posición vertical de la imagen
-                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
-                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
-                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
-                yanchor="middle"  # Ancla verticalmente la imagen al centro
-)  
-            fig.add_layout_image(
-                source=image1,
-                xref="paper",
-                yref="paper",
-                x=1.26,  # Ajusta la posición horizontal de la imagen
-                y=0.95,  # Ajusta la posición vertical de la imagen
-                sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
-                sizey=0.13,  # Ajusta el tamaño vertical de la imagen
-                xanchor="right",  # Ancla horizontalmente la imagen a la derecha
-                yanchor="middle"  # Ancla verticalmente la imagen al centro
-)  
-             # Agregar texto independiente al lado del gráfico
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
-                xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')
+    # Se crea una nueva figura para el gráfico seleccionado
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=fechas_validas,
+                    y=-dn.iloc[i, 1:][dn.columns[1:] != 'set-21'],  # Los valores son el resto de las columnas para esta fila
+                    mode='lines+markers',
+                    name=dn.iloc[i, 0],  # El nombre del gráfico es el valor de la primera columna
+                    hovertemplate='Fecha: %{x}<br>Valor: %{y} m',
+        ))
+                fig.update_layout(title=dn.iloc[i, 0],
+                                    height=700,
+                                    width=1400,
+                                    margin=dict(l=100, r=300, t=100, b=100),
+                                    xaxis_tickangle=-90,
+                                    legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
+                                    showlegend=True,
+                                    xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
+                                    yaxis=dict(title='Profundidad nivel de agua (m)') 
+            )
+                
+                fig.add_layout_image(
+                    source=image,
+                    xref="paper",
+                    yref="paper",
+                    x=1.13,  # Ajusta la posición horizontal de la imagen
+                    y=0.95,  # Ajusta la posición vertical de la imagen
+                    sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                    sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                    xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                    yanchor="middle"  # Ancla verticalmente la imagen al centro
+    )  
+                fig.add_layout_image(
+                    source=image1,
+                    xref="paper",
+                    yref="paper",
+                    x=1.26,  # Ajusta la posición horizontal de la imagen
+                    y=0.95,  # Ajusta la posición vertical de la imagen
+                    sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                    sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                    xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                    yanchor="middle"  # Ancla verticalmente la imagen al centro
+    )  
+                # Agregar texto independiente al lado del gráfico
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
+                    xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')
 
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">COMPORTAMIENTO HISTÓRICO DE LAS<br>VARIACIONES DE NIVEL Y<br> CONDUCTIVIDAD ESPECÍFICA</b>',
-                xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')   
-# Agregar texto independiente al lado del gráfico 
-            fig.add_annotation(
-                text='<b style="font-size:12.5px">Equipo de monitoreo financiado con el<br>Canon de Aprovechamiento de<br>Agua',
-                xref='paper', yref='paper', x=1.245, y=0.25, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white') 
-# Agregar texto independiente al lado del gráfico 
-            fig.add_annotation(
-                text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
-                xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
-                align='center',
-                bordercolor='black', borderwidth=1,
-                bgcolor='white')   
-# Se muestra el gráfico seleccionado
-            st.plotly_chart(fig)
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">COMPORTAMIENTO HISTÓRICO DE LAS<br>VARIACIONES DE NIVEL Y<br> CONDUCTIVIDAD ESPECÍFICA</b>',
+                    xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')   
+    # Agregar texto independiente al lado del gráfico 
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">Equipo de monitoreo financiado con el<br>Canon de Aprovechamiento de<br>Agua',
+                    xref='paper', yref='paper', x=1.245, y=0.25, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white') 
+    # Agregar texto independiente al lado del gráfico 
+                fig.add_annotation(
+                    text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
+                    xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')   
+    # Se muestra el gráfico seleccionado
+                st.plotly_chart(fig)
+
+file5 = st.file_uploader('Seleccione un archivo CSV correspondiente al monitoreo manual con valores estáticos')
+if file5 is not None:
+# Carga de registros en un dataframe
+                en = pd.read_csv(file5, sep=";")
+                en
+    # Reemplazar comas por puntos en las columnas numéricas
+                en.iloc[:, 1:] = en.iloc[:, 1:].replace(',', '.', regex=True).astype(float)
+
+    # Lista de etiquetas para seleccionar el gráfico
+                etiquetas = []
+                for i in en.index:
+                    etiqueta = f"{en.iloc[i, 0]}"
+                    etiquetas.append(etiqueta)
+
+    # Seleccionar el índice del gráfico mediante las etiquetas
+                etiqueta_seleccionada = st.selectbox("Seleccione el gráfico a mostrar:", etiquetas)
+
+    # Obtener el índice seleccionado
+                i = etiquetas.index(etiqueta_seleccionada)
+                fecha_actual = datetime.datetime.now().strftime("%d-%m-%Y")
+
+    # Filtrar las fechas válidas y convertirlas al formato deseado
+                fechas_validas = filtrar_y_formatear_fechas(en.columns[1:])
+
+    # Se crea una nueva figura para el gráfico seleccionado
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=fechas_validas,
+                    y=-en.iloc[i, 1:][en.columns[1:] != 'set-21'],  # Los valores son el resto de las columnas para esta fila
+                    mode='lines+markers',
+                    name=en.iloc[i, 0],  # El nombre del gráfico es el valor de la primera columna
+                    hovertemplate='Fecha: %{x}<br>Valor: %{y} m',
+        ))
+                fig.update_layout(title=en.iloc[i, 0],
+                                    height=700,
+                                    width=1400,
+                                    margin=dict(l=100, r=300, t=100, b=100),
+                                    xaxis_tickangle=-90,
+                                    legend=dict(yanchor="top",y=0.695,xanchor="right",x=1.20),
+                                    showlegend=True,
+                                    xaxis=dict(title="Registro Histórico", tickmode = 'linear', dtick = '12'),
+                                    yaxis=dict(title='Profundidad nivel de agua (m)') 
+            )
+                
+                fig.add_layout_image(
+                    source=image,
+                    xref="paper",
+                    yref="paper",
+                    x=1.13,  # Ajusta la posición horizontal de la imagen
+                    y=0.95,  # Ajusta la posición vertical de la imagen
+                    sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                    sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                    xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                    yanchor="middle"  # Ancla verticalmente la imagen al centro
+    )  
+                fig.add_layout_image(
+                    source=image1,
+                    xref="paper",
+                    yref="paper",
+                    x=1.26,  # Ajusta la posición horizontal de la imagen
+                    y=0.95,  # Ajusta la posición vertical de la imagen
+                    sizex=0.13,  # Ajusta el tamaño horizontal de la imagen
+                    sizey=0.13,  # Ajusta el tamaño vertical de la imagen
+                    xanchor="right",  # Ancla horizontalmente la imagen a la derecha
+                    yanchor="middle"  # Ancla verticalmente la imagen al centro
+    )  
+                # Agregar texto independiente al lado del gráfico
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">SISTEMA DE MONITOREO DE AGUAS<br>SUBTERRÁNEAS EN TIEMPO REAL, SIMASTIR</b>',
+                    xref='paper', yref='paper', x=1.26, y=0.88, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')
+
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">COMPORTAMIENTO HISTÓRICO DE LAS<br>VARIACIONES DE NIVEL Y<br> CONDUCTIVIDAD ESPECÍFICA</b>',
+                    xref='paper', yref='paper', x=1.245, y=0.80, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')   
+    # Agregar texto independiente al lado del gráfico 
+                fig.add_annotation(
+                    text='<b style="font-size:12.5px">Equipo de monitoreo financiado con el<br>Canon de Aprovechamiento de<br>Agua',
+                    xref='paper', yref='paper', x=1.245, y=0.25, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white') 
+    # Agregar texto independiente al lado del gráfico 
+                fig.add_annotation(
+                    text=f'<b style="font-size:12.5px">Actualizado al: {fecha_actual}',
+                    xref='paper', yref='paper', x=1.22, y=0.20, showarrow=False,
+                    align='center',
+                    bordercolor='black', borderwidth=1,
+                    bgcolor='white')   
+    # Se muestra el gráfico seleccionado
+                st.plotly_chart(fig)
